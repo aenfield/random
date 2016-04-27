@@ -1,5 +1,5 @@
-#pragma config(Sensor, S3, color3, sensorEV3_Color, modeEV3Color_Reflected)
-#pragma config(Sensor, S4, sonar4, sensorEV3_Ultrasonic)
+#pragma config(Sensor, S3, colorSensor, sensorEV3_Color, modeEV3Color_Reflected)
+#pragma config(Sensor, S4, sonarSensor, sensorEV3_Ultrasonic)
 #pragma config(Motor, motorB, leftwheel,     tmotorEV3_Large, PIDControl, encoder)
 #pragma config(Motor, motorC, rightwheel,    tmotorEV3_Large, PIDControl, encoder)
 
@@ -12,9 +12,19 @@ void turnLeft(int speed) {
 	motor[leftwheel] = speed;
 }
 
+void turnRight(int speed) {
+	motor[rightwheel] = speed;
+}
+
+int randBetween(int min, int max) {
+	return (rand() % (max-min)) + min;
+}
+
 
 task main()
 {
+	srand(nSysTime);
+
 	// consts for forward/backward
 	const int forwardSpeedSlow = -30;
 	const int forwardSpeedMed = -60;
@@ -30,7 +40,7 @@ task main()
 
 	while(true)
 	{
-		currentDistance = SensorValue[sonar4];
+		currentDistance = SensorValue[sonarSensor];
 
 		if (currentDistance > attackDistance)
 		{
@@ -43,11 +53,15 @@ task main()
 			move(forwardSpeedFast);
 		}
 
-		if (SensorValue[color3] > 40) {
+		if (SensorValue[colorSensor] > 40) {
 			move(backwardSpeedMed);
 			sleep(300);
 
-			turnLeft(forwardSpeedMed);
+			if (randBetween(0,1) == 0) {
+				turnLeft(forwardSpeedMed);
+			} else {
+				turnRight(forwardSpeedMed);
+			}
 			sleep(300);
 		}
 
