@@ -16,8 +16,8 @@ void turnRight(int speed) {
 	motor[rightwheel] = speed;
 }
 
-int randBetween(int min, int max) {
-	return (rand() % (max-min)) + min;
+int randBoolean() {
+	return (rand() % 2);
 }
 
 
@@ -38,6 +38,12 @@ task main()
 
 	int currentDistance = 0;
 
+	int foo = 0;
+
+	//while(true) {
+	//	foo = randBoolean();
+	//}
+
 	while(true)
 	{
 		currentDistance = SensorValue[sonarSensor];
@@ -57,7 +63,7 @@ task main()
 			move(backwardSpeedMed);
 			sleep(300);
 
-			if (randBetween(0,1) == 0) {
+			if (randBoolean() == 0) {
 				turnLeft(forwardSpeedMed);
 			} else {
 				turnRight(forwardSpeedMed);
