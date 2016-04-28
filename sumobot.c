@@ -1,7 +1,7 @@
 #pragma config(Sensor, S3, colorSensor, sensorEV3_Color, modeEV3Color_Reflected)
 #pragma config(Sensor, S4, sonarSensor, sensorEV3_Ultrasonic)
-#pragma config(Motor, motorB, leftwheel,     tmotorEV3_Large, PIDControl, encoder)
-#pragma config(Motor, motorC, rightwheel,    tmotorEV3_Large, PIDControl, encoder)
+#pragma config(Motor, motorB, leftwheel, tmotorEV3_Large, PIDControl, encoder)
+#pragma config(Motor, motorC, rightwheel, tmotorEV3_Large, PIDControl, encoder)
 
 void move(int speed) {
 	motor[leftwheel] = speed;
@@ -34,15 +34,12 @@ task main()
 	const int backwardSpeedFast = -forwardSpeedFast;
 
 	// distance at which we switch to 'attack', in cm
-	const int attackDistance = 30;
+	const int attackDistance = 50;
 
 	int currentDistance = 0;
 
-	int foo = 0;
-
-	//while(true) {
-	//	foo = randBoolean();
-	//}
+	// gotta wait
+	//sleep(3000);
 
 	while(true)
 	{
