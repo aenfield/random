@@ -15,7 +15,7 @@ const int backwardSpeedFast = -forwardSpeedFast;
 const int whiteThreshold = 40;
 
 // distance at which we switch to 'attack', in cm
-const int attackDistance = 40;
+const int attackDistance = 50;
 
 // how many ms we reverse before attack, to avoid motor overshooting
 const int reverseBeforeAttackTime = 80;
@@ -72,6 +72,12 @@ task main()
 		if (attackMode == 1)
 		{
 			move(forwardSpeedFast);
+
+			currentDistance = SensorValue[sonarSensor];
+			if (currentDistance > attackDistance) {
+				// switch back to search mode
+				attackMode = 0;
+			}
 		}
 		else // search
 		{
