@@ -59,7 +59,6 @@ task main()
 
 	int currentDistance = 0;
 	int attackMode = 0;
-	int spinDirection = 0;
 
 	// gotta wait
 	sleep(3000);
@@ -70,26 +69,15 @@ task main()
 
 	while(true)
 	{
-		currentDistance = SensorValue[sonarSensor];
-
 		if (attackMode == 1)
 		{
 			move(forwardSpeedFast);
-
-			if (currentDistance > attackDistance) {
-				// switch back to search mode
-				attackMode = 0
-				spinDirection = randBoolean();
-			}
 		}
 		else // search
 		{
-			if (spinDirection == 0) {
-				turnLeftSharply(forwardSpeedFast);
-			} else {
-				turnRightSharply(forwardSpeedFast);
-			}
+			turnRightSharply(forwardSpeedFast);
 
+			currentDistance = SensorValue[sonarSensor];
 			if (currentDistance < attackDistance) {
 				attackMode = 1;
 
@@ -112,7 +100,6 @@ task main()
 
 			// switch to search mode now that we've hopefully moved off the edge
 			attackMode = 0;
-			spinDirection = randBoolean();
 		}
 
 		sleep(50);
