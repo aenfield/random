@@ -15,7 +15,7 @@ const int backwardSpeedFast = -forwardSpeedFast;
 const int whiteThreshold = 40;
 
 // distance at which we switch to 'attack', in cm
-const int attackDistance = 50;
+const int attackDistance = 40;
 
 // how many ms we reverse before attack, to avoid motor overshooting
 const int reverseBeforeAttackTime = 80;
@@ -52,27 +52,6 @@ int randBoolean() {
 	return (rand() % 2);
 }
 
-//task dontRunOffTheSide() {
-//    displayCenteredBigTextLine(3, "T DontRunOffTheSide");
-
-//		if (SensorValue[colorSensor] > 40) {
-//			displayCenteredBigTextLine(6, "Color Sensor");
-
-//			move(backwardSpeedMed);
-//			sleep(300);
-
-//			if (randBoolean() == 0) {
-//				turnLeft(forwardSpeedMed);
-//			} else {
-//				turnRight(forwardSpeedMed);
-//			}
-//			sleep(300);
-//		}
-
-//		// use sleep for 1ms since endTimeSlice isn't defined
-//		//endTimeSlice();
-//		sleep(1);
-//}
 
 task main()
 {
@@ -81,11 +60,12 @@ task main()
 	int currentDistance = 0;
 	int attackMode = 0;
 
-	// initialize
-	//startTask(dontRunOffTheSide);
-
 	// gotta wait
-	//sleep(3000);
+	sleep(3000);
+
+	// then gotta move forward a quarter turn or so
+	move(forwardSpeedMed);
+	sleep(333);
 
 	while(true)
 	{
