@@ -1,0 +1,274 @@
+---
+title: "Chapter 3, dplyr"
+output: html_notebook
+---
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+```
+
+```{r}
+flights
+```
+
+```{r}
+summary(flights)
+```
+
+```{r}
+filter(flights, month == 1, day == 1)
+```
+
+```{r}
+(jan1 <- filter(flights, month == 1, day == 1))
+```
+
+```{r}
+(near(sqrt(2)^2, 2))  # parans here to output this result too - could also use print(...)
+near(1/49*49, 1)
+```
+
+```{r}
+#nov_dec <- filter(flights, month == 11 | month == 12)  # same as next line
+nov_dev <- filter(flights, month %in% c(11, 12))
+```
+
+De Morgan's law to return flights that weren't delayed - on departure or arrival - by more than two hours. Remember that !(x & y) is the same as (!x | !y), and !(x | y) is the same as (!x & !y).
+```{r}
+filter(flights, !(arr_delay > 120 | dep_delay > 120))
+```
+```{r}
+filter(flights, arr_delay <= 120, dep_delay <= 120) 
+```
+
+"Whenever you start using complicated, multipart expressions in filter(), consider making them explicit variables instead. This makes it much easier to check your work."
+
+```{r}
+filter(flights, arr_delay >= 120)
+```
+
+```{r}
+filter(flights, dest == "IAH" | dest == "HOU")
+```
+
+```{r}
+filter(flights, carrier == "UA" | carrier == "AA" | carrier == "DL")
+```
+
+```{r}
+filter(flights, carrier %in% c("UA","AA","DL"))
+```
+
+```{r}
+filter(flights, month %in% c(7,8,9))
+```
+
+```{r}
+filter(flights, arr_delay >= 120 & dep_delay <= 0)
+```
+
+```{r}
+filter(flights, dep_delay >= 60 & arr_delay <= 30)
+```
+
+
+```{r}
+filter(flights, dep_time >= 0 & dep_time <= 0600)
+```
+
+```{r}
+filter(flights, between(dep_time, 0, 600))
+```
+
+```{r}
+sum(is.na(flights$dep_time))
+```
+```{r}
+filter(flights, is.na(dep_time))
+```
+
+```{r}
+arrange(flights, year, month, day)
+```
+
+```{r}
+arrange(flights, desc(arr_delay))
+```
+
+```{r}
+df <- tibble(x = c(5, 2, NA))
+arrange(df, x)
+```
+
+```{r}
+arrange(flights, desc(is.na(dep_time)))
+```
+```{r}
+arrange(flights, desc(arr_delay))
+```
+
+```{r}
+arrange(flights, dep_delay)
+```
+
+```{r}
+arrange(flights, air_time)
+```
+
+```{r}
+arrange(flights, desc(distance))
+```
+
+```{r}
+arrange(flights, distance)
+```
+
+```{r}
+select(flights, year, month, day)
+```
+
+```{r}
+select(flights, year:day)
+```
+
+```{r}
+select(flights, -(year:day))
+```
+
+```{r}
+rename(flights, tail_num = tailnum)
+```
+
+Two things interesting about the above:
+
+* First, remember that changes never happen in place, so the statement above changes the column name and returns the resulting df, w/ the changed name. But it doesn't save/modify the flights var - that one still has the original column name. If I was to assign the result of the above line to flights then I would create a new local var called flights that points to a df w/ the changed column name. To revert back to the original df, I'd do an rm(flights) to delete the local variable reference, after which the reference in the nycflights13 library would be the one that was visible, per http://stackoverflow.com/questions/25167478/restore-default-r-dataset-after-edits.
+* Second, the ordering of the second param was the opposite of what I was expecting. Here's what works: the first name (tail_num here) is the new name of the column, and it gets the values of the second name (tailnum), and then, i think, rename must automatically drop the tailnum column. I was thinking that it should be opposite - for ex, that the first param was the key to look up in the set of cols, and then the second param was the column that it should hold. I see the logic of the first approach.
+
+```{r}
+select(flights, tailnum, tailnum, arr_delay)
+```
+
+```{r}
+vars <- c("year", "month", "day", "dep_delay")
+select(flights, one_of(vars))
+```
+So, it looks like you can use one_of to select all the columns w/ names in a vector - i.e., as opposed to specifying the names in the code itself.
+
+```{r}
+select(flights, contains("TIME"))
+```
+By default, the helpers - like contain, one_of, etc. (documented in the "Select helpers" doc that you can get with things liKE one_of?) have ignore.case set to TRUE. 
+
+```{r}
+select(flights, contains("TIME", ignore.case = FALSE))
+```
+
+```{r}
+flights_sml <- select(flights,
+                      year:day,
+                      ends_with("delay"),
+                      distance,
+                      air_time)
+mutate(flights_sml,
+       gain = arr_delay - dep_delay,
+       speed = distance / air_time * 60,
+       gain_per_hour = gain / air_time * 60)
+```
+
+```{r}
+transmute(flights, 
+          gain = arr_delay - dep_delay,
+          speed = distance / air_time * 60)
+```
+
+%/% and %% are integer division (drop remainder) and remainder, respectively. They can be used to break up integers into pieces, like so:
+```{r}
+transmute(flights,
+          dep_time,
+          hour = dep_time %/% 100,
+          minute = dep_time %% 100)
+```
+
+Good point: "Logarithms are an incredibly useful transformation for dealing with data that ranges across multiple orders of magnitude. They also convert multiplicative relationships to additive. All else being equal [he] recommends using log2() because it's easy to interpret: a difference of 1 on the log scale corresponds to a doubling on the original scale and a difference of -1 corresponds to halving."
+
+```{r}
+(x <- 1:10)
+lag(x)
+lead(x)
+```
+
+In chapter three there's also stuff about cummean, and rolling aggregates recommending the RcppRoll package
+```{r}
+x
+cumsum(x)
+cummean(x)
+```
+
+```{r}
+(y <- c(1,2,2,NA,3,4))
+desc(y) # 'transforms a vector into a format that will be sorted in descending order'
+min_rank(y)
+min_rank(desc(y))
+```
+
+```{r}
+row_number(y)
+dense_rank(y)
+percent_rank(y)
+cume_dist(y)
+```
+
+```{r}
+flights_a = mutate(flights, 
+          dep_time_mins_since_midnight = ((dep_time %/% 100) * 60) + dep_time %% 100,
+          sched_dep_time_mins_since_midnight = ((sched_dep_time %/% 100) * 60) + sched_dep_time %% 100)
+flights_a
+```
+
+```{r}
+transmute(flights,
+          air_time,
+          arr_time,
+          dep_time,
+          air_time_second = arr_time - dep_time
+          )
+```
+
+```{r}
+arrange(flights, desc(dep_delay))
+```
+
+```{r}
+summarize(flights, delay = mean(dep_delay, na.rm = TRUE))
+```
+```{r}
+mean(flights$dep_delay, na.rm = TRUE)
+```
+summarize - which collapses a df to a single row - is more useful with group_by. With group_by, summarize runs on each group instead of the whole df.
+```{r}
+by_day = group_by(flights, year, month, day)
+summarize(by_day, delay = mean(dep_delay, na.rm = TRUE))
+```
+
+"The group_by() and summarize() functions are one of the tools that you'll use most commonly with dplyr: grouped summaries."
+
+```{r}
+by_dest <- group_by(flights, dest)
+delay <- summarize(by_dest,
+                   count = n(),
+                   dist = mean(distance, na.rm = TRUE),
+                   delay = mean(arr_delay, na.rm = TRUE))
+delay <- filter(delay, count > 20, dest != "HNL")
+
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3) + 
+  geom_smooth(se = FALSE)
+```
+This plot says that delays increase with distances up to ~750 miles and then decrease. Perhaps with longer flights, there's more ability to make up departure delays in the air?
+
+
+
+# To remember
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
