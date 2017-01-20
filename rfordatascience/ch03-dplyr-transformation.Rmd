@@ -267,6 +267,190 @@ ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
 ```
 This plot says that delays increase with distances up to ~750 miles and then decrease. Perhaps with longer flights, there's more ability to make up departure delays in the air?
 
+Naming things is hard, and takes time. Above, we have to name a few different interim data frames even though they're just interim. Instead, we can avoid the naming, and make the code clearer and shorter, using the pipe.
+```{r}
+delays <- flights %>%
+  group_by(dest) %>%
+  summarize(
+    count = n(),
+    dist = mean(distance, na.rm=TRUE),
+    delay = mean(arr_delay, na.rm=TRUE)
+  ) %>%
+  filter(count > 20, dest != "HNL")
+
+ggplot(data = delay, mapping = aes(x = dist, y = delay)) +
+  geom_point(aes(size = count), alpha = 1/3) +
+  geom_smooth(se = FALSE)
+```
+```{r}
+flights %>% group_by(year, month, day) %>% summarize(mean = mean(dep_delay, na.rm=TRUE))
+```
+```{r}
+not_cancelled <- flights %>% filter(!is.na(dep_delay), !is.na(arr_delay))
+
+not_cancelled %>% group_by(year, month, day) %>% summarize(mean = mean(dep_delay))
+```
+
+Always a good idea to include a count (n()) or count of non-missing values (sum(!is.na(x))) to make sure you don't draw conclusions based on small amounts of data.
+
+Here's a 'frequency polygon' - basically a histogram made of lines, per the docs (i.e., a density plot?). This says some planes have an average delay of 300m/5hrs.
+```{r}
+delays <- not_cancelled %>% group_by(tailnum) %>% summarize(delay = mean(arr_delay))
+
+ggplot(data = delays, mapping = aes(x = delay)) +
+  geom_freqpoly(binwidth = 10)
+```
+To see more of what's going on, let's draw a scatterplot showing number of flights versus average delay - what was y is now on the x axis.
+```{r}
+delays <- not_cancelled %>%
+  group_by(tailnum) %>%
+  summarize(
+    delay = mean(arr_delay, na.rm=TRUE),
+    n = n()
+  )
+
+ggplot(data = delays, mapping = aes(x = n, y = delay)) +
+  geom_point(alpha = 1/10)
+```
+So, this is showing what we almost always see: whenever we plot a mean or other summary vs group size, the higher the number of samples/the number of items in a group, the smaller the variation. Some planes/tail numbers with about 50 or fewer flights have very high (or relatively low) average delays. But once you get more and more flights for a single tail number, the average delay for that tail number gets smaller and smaller.
+
+It's also useful to filter out the groups w/ the smallest numbers of observations, to see more of the pattern and less of the extreme variation in the smallest groups. This also shows a handy way to integrate ggplot2 into dplyr (which necessitates switching between %>% and + - it does mean you don't need to specify the data param in the ggplot call).
+```{r}
+delays %>%
+  filter(n > 25) %>%
+  ggplot(mapping = aes(x = n, y = delay)) +
+    geom_point(alpha = 1/10)
+```
+
+```{r}
+batting = as_tibble(Lahman::Batting)
+
+batters <- batting %>%
+  group_by(playerID) %>%
+  summarize(
+    ba = sum(H, na.rm=TRUE) / sum(AB, na.rm=TRUE),
+    ab = sum(AB, na.rm=TRUE)
+  )
+
+batters %>% filter(ab > 100) %>%
+  ggplot(mapping = aes(x = ab, y = ba)) +
+    geom_point() + 
+    geom_smooth(se = FALSE)
+```
+
+```{r}
+not_cancelled %>%
+  group_by(year, month, day) %>%
+  summarize(
+    avg_delay_all = mean(arr_delay),
+    avg_delay_positive = mean(arr_delay[arr_delay > 0])
+  )
+```
+
+```{r}
+not_cancelled %>%
+  group_by(dest) %>%
+  summarize(
+    distance_sd = sd(distance)
+  ) %>%
+  arrange(desc(dist))
+```
+
+```{r}
+not_cancelled %>%
+  group_by(year, month, day) %>%
+  summarize(
+    first = min(dep_time),
+    last = max(dep_time),
+    q_50 = quantile(dep_time, 0.5),
+    median = median(dep_time)
+  )
+```
+```{r}
+not_cancelled %>% 
+  group_by(year, month, day) %>%
+  mutate(r = min_rank(desc(dep_time))) %>%
+  filter(r %in% range(r))
+```
+
+```{r}
+# which dests have the most carriers?
+not_cancelled %>%
+  group_by(dest) %>%
+  summarize(carriers = n_distinct(carrier)) %>%
+  arrange(desc(carriers))
+```
+
+```{r}
+# count of flights to each destination
+not_cancelled %>%
+  count(dest) %>% # looks like this is the same as a group_by(dest) and then summarize(n = n())
+  arrange(desc(n)) # count gives us a variable named n, and we can sort on it here
+```
+
+```{r}
+# you can "count" - really, sum the vals in a particular column instead of just counting rows by using the weight - wt - param. this would
+# have been helpful in my work in Python with Edge feedback where i have a 'Cnt' field that I want to sum
+
+# this'll sum and return the total number of miles each plane has flown
+not_cancelled %>%
+  count(tailnum, wt = distance)
+```
+```{r}
+not_cancelled %>%
+  group_by(dest) %>%
+  summarize(n = n())
+```
+
+
+
+```{r}
+# how many flights left before 5a? (delayed flights often from the prev day)
+not_cancelled %>%
+  group_by(year, month, day) %>%
+  summarize(n_early = sum(dep_time < 500))
+```
+
+```{r}
+# what prop. of flights are delayed by more than an hour?
+not_cancelled %>%
+  group_by(year, month, day) %>%
+  summarize(hour_perc = mean(arr_delay > 60))
+```
+
+```{r}
+daily <- group_by(flights, year, month, day)
+(per_day <- summarize(daily, flights = n()))
+```
+```{r}
+(per_month = summarize(per_day, flights = sum(flights)))
+```
+
+```{r}
+(per_year = summarize(per_month, flights=sum(flights)))
+```
+
+```{r}
+daily %>%
+  ungroup() %>% # no longer grouped by provided fields
+  summarize(flights=n())
+```
+
+```{r}
+# find the worst members of each group
+flights_sml %>%
+  group_by(year, month, day) %>%
+  filter(rank(desc(arr_delay)) < 10)
+```
+
+```{r}
+# all groups bigger than a threshold
+popular_dests <- flights %>%
+  group_by(dest) %>%
+  filter(n() > 365)
+popular_dests
+```
+
 
 
 # To remember

@@ -1,0 +1,70 @@
+---
+title: "R for Data Science, Chapter 4"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, out.width=2)  # sure seems like out.width (and also fig.width) don't do what i'd think they'd do
+```
+
+```{r}
+library(tidyverse)
+```
+
+# Variation
+
+Understanding variation in a variable is a key part of most EDA. For categorical variables, use a bar chart, with one axis being different values of the categorical variable and the other being the count of those values.
+
+```{r}
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut))
+```
+You can get the same counts by hand.
+```{r}
+diamonds %>% count(cut)
+```
+
+
+For a continuous variable, there's no set of categorical/discrete variables for one axis and instead we specify or an algorithm calculates bins to which the values are then assigned.
+
+```{r}
+ggplot(data = diamonds) + geom_histogram(mapping = aes(x = carat), binwidth = 0.5)
+```
+
+And by hand.
+```{r}
+diamonds %>% count(cut_width(carat, 0.5))
+```
+
+To plot multiple histograms/variables in the same plot, use geom_freqpoly as it's easier to see the individual plots/variables this way (lines don't overlap as much as bars).
+```{r}
+ggplot(data = diamonds, mapping = aes(x = carat, color = cut)) +
+  geom_freqpoly(binwidth = 0.1)
+```
+```{r}
+ggplot(data = diamonds, mapping = aes(x = carat)) + 
+  geom_histogram(binwidth = 0.01)
+```
+
+It can be hard to see outliers - since they're likely very infrequent - when you use a histogram with any reasonably sized amount of data. For examples, the only hint that there are outliers in the plot below is that the x-axis is wide.
+```{r}
+ggplot(diamonds) + geom_histogram(mapping = aes(x = y), binwidth = 0.5)
+```
+We can zoom into small values of the y-axis using coord_cartesian():
+```{r}
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), binwidth = 0.5) +
+  coord_cartesian(ylim = c(0,50))
+```
+So we have unusual values at 0, around 30, and around 60. Let's pluck them out using dplyr.
+```{r}
+unusual <- diamonds %>%
+  filter(y < 3 | y > 20) %>%
+  arrange(y)
+unusual
+```
+```{r}
+ggplot(data = diamonds, mapping = aes(x = price)) +
+  geom_histogram(binwidth = 20)
+```
+
+# Missing values
