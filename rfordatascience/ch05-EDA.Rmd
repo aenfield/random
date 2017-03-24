@@ -68,3 +68,197 @@ ggplot(data = diamonds, mapping = aes(x = price)) +
 ```
 
 # Missing values
+
+```{r}
+diamonds2 <- diamonds %>%
+  mutate(y = ifelse(y < 3 | y > 20, NA, y))
+```
+
+  
+```{r}
+ggplot(data = diamonds2, mapping = aes(x = x, y = y)) + 
+  geom_point()
+```
+
+```{r}
+nycflights13::flights %>%
+  mutate(
+    cancelled = is.na(dep_time)
+  ) %>%
+  ggplot(aes(sched_dep_time)) +
+    geom_freqpoly(
+      aes(color = cancelled),
+      binwidth = 1/4
+    )
+```
+
+# Covariation
+
+## quantitative variable associated with a categorical variable
+
+```{r}
+ggplot(diamonds, aes(x = price)) +
+  geom_freqpoly(aes(color = cut), binwidth = 500)
+```
+
+```{r}
+ggplot(diamonds) + 
+  geom_bar(aes(x = cut))
+```
+
+Because there are such different overall counts for cut, we can't see the covariation (variation between variables) if we just use geom_freqpoly, since the graph for the more frequent cuts is big while the ones for smaller counts is tiny. To fix this we want to normalize by the count of cuts - we want the density, by cut, instead of the default count. The following is the same as above except for the addition of the y = ..density.. bit.
+
+```{r}
+ggplot(diamonds, aes(x = price, y = ..density..)) +
+  geom_freqpoly(aes(color = cut), binwidth = 500)
+```
+
+Above isn't great because for ex, the naive interpretation is that fair diamonds - the lowest quality in theory - have the highest average price (I think because the fair curve is bigger to the right than the others). Perhaps better is a set of box plots. (This plot also shows that fair diamonds have comparable prices - I think this is because of a confounding variable - is it size?)
+
+```{r}
+ggplot(diamonds, aes(x = cut, y = price)) + 
+  geom_boxplot()
+```
+```{r}
+ggplot(mpg, aes(x = class, y = hwy)) + 
+  geom_boxplot()
+```
+
+```{r}
+# reorder based on median of the hwy values for each class, to get an ordered plot
+ggplot(mpg) + 
+  geom_boxplot(aes(
+    x = reorder(class, hwy, FUN = median),
+    y = hwy
+  ))
+```
+
+```{r}
+# flip axes to show labels better - just add coord_flip
+ggplot(mpg) + 
+  geom_boxplot(aes(
+    x = reorder(class, hwy, FUN = median),
+    y = hwy
+  )) + 
+  coord_flip()
+```
+
+## two categorical variables
+
+We'd normally do this with a two-table, for example. How does ggplot do it? One way is with geom_count which shows a circle at each combination of the two variables' values, where the size of the circle is proportional to the count of co-occurences of that combination of values.
+
+```{r}
+ggplot(diamonds) + 
+  geom_count(aes(x = cut, y = color))
+```
+
+Or, we can use a heatmap.
+```{r}
+diamonds %>% count(color, cut)
+```
+
+```{r}
+diamonds %>%
+  count(color, cut) %>%
+  ggplot(aes(x = color, y = cut)) +
+    geom_tile(aes(fill = n))
+```
+
+More info: "If the categorical variables are unordered, you might want to use the seriation package to simultaneously reorder the rows and columns in order to more clearly reveal interesting patterns. For larger plots, you might want to try the d3heatmap or heatmaply packages, which create interactive plots."
+
+## Two continuous variables
+
+Use a scatterplot.
+
+```{r}
+ggplot(diamonds) + 
+  geom_point(aes(x = carat, y = price))
+```
+
+With more plots, we can make individual points transparent and avoid cases where only a few points in an area looke the same as many points.
+
+```{r}
+ggplot(diamonds) + 
+  geom_point(aes(x = carat, y = price), alpha = 1/100)
+```
+
+You can use jitter too. Both jitter and transparency are hard to use with very large data sets, so another option is to bin. With histograms and frequency polygons we bin in one dimension. We can use geom_bin2d (rectangular bins in a 2-d plane) and geom_hex (hexagonal bins) to bin in two dimensions.
+
+```{r}
+ggplot(diamonds) + 
+  geom_bin2d(aes(x = carat, y = price))
+```
+
+```{r}
+library(hexbin)
+ggplot(diamonds) + 
+  geom_hex(aes(x = carat, y = price))
+```
+
+You can also bin just one of the two continuous variables so that it acts like a categorical variable, and then you can do things like side-by-side boxplots. For example, we can bin carat and then for each bin - range of carat values - display a boxplot of the price.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_boxplot(aes(group = cut_width(carat, 0.1)))
+```
+
+Boxplots looks the same regardless of how many values are being summarized. To avoid this, use varwidth = TRUE to make the width proportional to the number of values.
+
+```{r}
+ggplot(diamonds, aes(x = carat, y = price)) +
+  geom_boxplot(aes(group = cut_width(carat, 0.1)), varwidth = TRUE)
+```
+
+# Patterns and models
+
+```{r}
+ggplot(faithful) + 
+  geom_point(aes(x = eruptions, y = waiting))
+```
+
+Well put:
+
+"Patterns provide one of the most useful tools for data scientists because they reveal covariation. If you think of variation as a phe‐ nomenon that creates uncertainty, covariation is a phenomenon that reduces it. If two variables covary, you can use the values of one variable to make better predictions about the values of the second. If the covariation is due to a causal relationship (a special case), then you can use the value of one variable to control the value of the second."
+
+And:
+
+"Patterns in your data provide clues about relationships. If a system‐ atic relationship exists between two variables it will appear as a pat‐ tern in the data. If you spot a pattern, ask yourself:
+
+* Could this pattern be due to coincidence (i.e., random chance)?
+* How can you describe the relationship implied by the pattern?
+* How strong is the relationship implied by the pattern?
+* What other variables might affect the relationship?
+* Does the relationship change if you look at individual sub‐ groups of the data?"
+
+"Models are a tool for extracting patterns out of data. For example, consider the diamonds data. It’s hard to understand the relationship between cut and price, because cut and carat, and carat and price, are tightly related. It’s possible to use a model to remove the very strong relationship between price and carat so we can explore the subtleties that remain. The following code fits a model that predicts price from carat and then computes the residuals (the difference between the predicted value and the actual value). The residuals give us a view of the price of the diamond, once the effect of carat has been removed:"
+
+```{r}
+library(modelr)
+
+mod <- lm(log(price) ~ log(carat), data = diamonds)
+
+diamonds2 <- diamonds %>%
+  add_residuals(mod) %>%
+  mutate(resid = exp(resid))
+
+ggplot(diamonds2) +
+  geom_point(aes(x = carat, y = resid))
+```
+
+Now, as the model above's 'removed' the effect of carat on price, we can look at the relationship between the cut and the price and see what we expected before: that better cuts have higher prices.
+
+```{r}
+ggplot(diamonds2) + 
+  geom_boxplot(aes(x = cut, y = resid))
+```
+
+From chapter 6: 
+
+**
+There is a great pair of keyboard shortcuts that will work together to make sure you’ve captured the important parts of your code in the editor:
+
+* Press Cmd/Ctrl-Shift-F10 to restart RStudio.
+* Press Cmd/Ctrl-Shift-S to rerun the current script.
+
+I use this pattern hundreds of times a week.
+**
