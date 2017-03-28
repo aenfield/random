@@ -1,0 +1,60 @@
+---
+title: "ch10-dplyr"
+author: "Andrew Enfield"
+date: "3/27/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+```
+
+# Data and primary, foreign keys
+
+```{r}
+airlines
+```
+
+```{r}
+airports
+```
+
+```{r}
+planes
+```
+
+```{r}
+weather
+```
+
+```{r}
+planes %>%
+  count(tailnum) %>%
+  filter(n > 1)
+```
+
+```{r}
+weather %>%
+  count(year, month, day, hour, origin) %>%
+  filter(n > 1)
+```
+
+```{r}
+flights %>%
+  count(year, month, day, flight) %>%
+  filter(n > 1)
+```
+
+```{r}
+flights %>%
+  count(year, month, day, tailnum) %>%
+  filter(n > 1)
+```
+
+# Mutating joins
+

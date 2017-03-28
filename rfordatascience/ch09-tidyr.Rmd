@@ -91,8 +91,8 @@ stocks %>%
 2. WHy does this fail?
 
 ```{r}
-table4a %>%
-  gather(1999, 2000, key = year, value = cases)
+#table4a %>%
+#  gather(1999, 2000, key = year, value = cases)
 ```
 
 ```{r}
@@ -116,8 +116,8 @@ people
 ```
 
 ```{r}
-people %>%
-  spread(key = key, value = value)
+#people %>%
+#  spread(key = key, value = value)
 ```
 Spread wants to give us a row per name, with columns for age and height. If we have multiple data values for a given name and age, how does it know how to pick one?
 
@@ -152,3 +152,55 @@ So, we've just rearranged the initial preg data. Why did we do this? I think bec
 3. Every value must have its own cell. 
 
 Here each observation was a person. (You could argue that we need to de-aggregate the counts and have a row per person, I suppose.) So we want a row per gender? I'll stop here - i need to think some more on this if i want to, because it seems like the arguments i'm going to make here about why this is tidy could equally apply to the original tibble?
+
+# Separate
+
+```{r}
+table3
+```
+```{r}
+table3 %>%
+  separate(rate, into = c("cases","population"))
+```
+
+```{r}
+table3 %>%
+  separate(rate, into = c("cases","population"), convert=TRUE)
+```
+
+```{r}
+(stocks <- tibble(
+  year =c(2015,2015,2015,2015,2016,2016,2016), qtr =c( 1, 2, 3, 4, 2, 3, 4), return=c(1.88,0.59,0.35, NA,0.92,0.17,2.66)
+))
+```
+
+```{r}
+stocks %>%
+  spread(year, return)
+```
+
+```{r}
+stocks %>%
+  spread(year, return) %>%
+  gather(year, return, `2015`,`2016`, na.rm = TRUE)
+```
+
+```{r}
+stocks %>%
+  complete(year, qtr)
+```
+
+# Case study: TB data
+
+```{r}
+who
+```
+
+```{r}
+(who1 <- who %>%
+  gather(
+    new_sp_m014:newrel_f65, key = "key", value = "cases", na.rm = TRUE
+  ))
+```
+
+
