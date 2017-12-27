@@ -2,3 +2,5 @@
 hmda_lar-2012.csv
 .Rproj.user
 .DS_Store
+derby.log
+metastore_db/
