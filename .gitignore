@@ -4,3 +4,5 @@ hmda_lar-2012.csv
 .DS_Store
 derby.log
 metastore_db/
+dask-worker-space/
+mydask.png
