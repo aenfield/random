@@ -1,0 +1,13 @@
+What column or columns in #1 are a minimal key? (By minimal is meant that no column can be removed and the result will still be a key.)
+**
+Assuming 'key' means a unique key - i.e., it's a set of one or more columns the values of which uniquely identify a given row - I don't think any single column or set of columns in the table specified by #1 is a key or a minimal key. That is, no combination of video_id, category_id, and language uniquely identifies each and every row in the table.  
+
+(When I look a bit more at the data, it looks like the trending_date column in combination with video_id would define a unique key - every combination of trending_date and video_id, for a given language, uniquely identifies a row.)
+**
+
+What test can you perform to see if columns in #2 are a key? Are a minimal key?
+**
+If I group by a given column or set of columns, I'll get a certain number of rows, one for value in that column/each combination of values in that set of columns. If the number of rows that I get as a result of a group by is equal to the number of rows I get without the group by, then the column(s) used in the group is a key - i.e., the values in the column(s) uniquely identify all rows. 
+
+I could then use this approach with every possible combination of columns in a table and declare every set of columns that is a key and that has the smallest number of columns in the group by to be a minimal key. For example, in a table with columns 'A' and 'B', if I determine that column A + column B is a key, and that column A, by itself, is a key, while column B is not a key, then column A is the minimal key.
+**
