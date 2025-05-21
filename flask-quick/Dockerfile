@@ -11,7 +11,10 @@ WORKDIR /app
 RUN uv sync --frozen --no-cache
 
 # and run the app
-CMD ["/app/.venv/bin/flask", "run", "app/first-app.py", "--host=0.0.0.0", "--port=8080"]
+CMD ["/app/.venv/bin/gunicorn", "-b", "0.0.0.0:8080", "first-app:app"]
+#CMD ["/app/.venv/bin/flask", "run", "app/first-app.py", "--host=0.0.0.0", "--port=8080"]
+
+
 #CMD ["/app/.venv/bin/flask", "run", "app/first-app.py", "--port", "80", "--host", "0.0.0.0"]
 
 
