@@ -6,3 +6,5 @@ derby.log
 metastore_db/
 dask-worker-space/
 mydask.png
+
+.env
