@@ -10,3 +10,4 @@ mydask.png
 .env
 .env.sh
 *.db
+*.wal
