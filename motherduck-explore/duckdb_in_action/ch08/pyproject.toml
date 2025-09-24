@@ -3,6 +3,8 @@ name = "duckdb-in-action"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
+    "dbt>=1.0.0.40.6",
+    "dbt-duckdb>=1.9.6",
     "dlt[workspace]>=1.17.0",
     "duckdb>=1.4.0",
 ]
