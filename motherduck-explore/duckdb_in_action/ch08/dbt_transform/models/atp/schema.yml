@@ -1,21 +1,32 @@
-
 version: 2
 
 models:
-  - name: my_first_dbt_model
-    description: "A starter dbt model"
+  - name: matches
+    description: "ATP tennis matches schema"
     columns:
-      - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
+      - name: tourney_id
+        description: "The ID of the tournament."
+        tests:
           - not_null
-
-  - name: my_second_dbt_model
-    description: "A starter dbt model"
-    columns:
-      - name: id
-        description: "The primary key for this table"
-        data_tests:
-          - unique
+      - name: winner_id
+        description: "The ID of the winning player."
+        tests:
           - not_null
+      - name: loser_id
+        description: "The ID of the losing player."
+        tests:
+          - not_null
+      - name: surface
+        description: "The type of court surface."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["Grass", "Hard", "Clay"]
+      - name: tourney_date
+        description: "Verify the tournament data starts in 2023."
+        tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: date
+          - dbt_expectations.expect_column_min_to_be_between:
+              min_value: "'2023-01-01'::DATE"
+              max_value: "'2023-12-31'::DATE"
