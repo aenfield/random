@@ -26,11 +26,11 @@ def main_loop():
             print(json.dumps(history, indent=2), '\n')
         else:
             history += [{'role': 'user', 'content': user_input}]
+
             response = llm_response(history)
+            history += [{'role': 'assistant', 'content': response.output_text}]
+            
             print(f'\nAssistant: {response.output_text}\n')
-            history += [
-                {'role': 'assistant', 'content': response.output_text}
-            ]
 
         user_input = input('User: ')
 
