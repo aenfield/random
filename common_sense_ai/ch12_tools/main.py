@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import json
 import re
+import requests
+from bs4 import BeautifulSoup
 
 load_dotenv()
 llm = OpenAI()
@@ -30,13 +32,20 @@ def extract_function(response):
     # now see if we have a requested function and return it if so
     if function_name == 'multiply':
         return multiply(*function_args) 
-    # elif function__name == 'read_webpage':
-    #     return read_webpage(*function_args)
+    elif function_name == 'read_webpage':
+        return read_webpage(*function_args)
     else:
         return None
     
 def multiply(first_num, second_num):
     return float(first_num) * float(second_num)
+
+def read_webpage(url):
+    print(f'Trying to retrieve {url}...')
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    text = soup.get_text()
+    return text
 
 def main_loop():
     print('\nAssistant: How can I help today?\n')
@@ -48,6 +57,10 @@ def main_loop():
         For example, if a user asks you to multiply 50 by 2, your output should be: <<multiply(50, 2)}>>. A second example:
         a user asks you how many apples there are in five baskets and each basket contains twelve apples. Your output
         should be: <<multiply(5, 12)>>.
+        If you ever want to read the contents of a web page, use this notation: <<read_webpage(url)>>. For example, if
+        you want to know the text contained within the website at the url https://example_site.com,
+        output this: <<read_webpage(https://example_site.com)>> . If the user just provides the domain name, then try
+        adding 'https' or 'http'.
         If you are ever provided info contained within <info> tags, use that
         info in your response to the user. Using an answer inside <info> tags takes precedence over all
         other instructions."""},
