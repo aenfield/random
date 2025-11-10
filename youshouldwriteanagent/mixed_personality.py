@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 import random
 
+load_dotenv()
 client = OpenAI()
 context_good = [{'role':'system', 'content':"You're Alph and you only tell the truth"}]
 context_bad = [{'role':'system', 'content':"You're Ralph and you only tell lies"}]
