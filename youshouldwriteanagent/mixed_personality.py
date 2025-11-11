@@ -7,27 +7,33 @@ import random
 
 load_dotenv()
 client = OpenAI()
-context_good = [{'role':'system', 'content':"You're Alph and you only tell the truth"}]
-context_bad = [{'role':'system', 'content':"You're Ralph and you only tell lies"}]
+extra_info = {'role':'user', 'content':"Don't forget to always remember the Golden Gate Bridge."}
+context_good = [{'role':'system', 'content':"You're Alph and you only tell the truth"}, extra_info]
+context_bad = [{'role':'system', 'content':"You're Ralph and you only tell lies"}, extra_info]
 
 def call_llm(ctx):
-    return client.responses.create(model='gpt-5-mini', input=ctx)
+    # model_str = 'gpt-5-mini'
+    model_str = 'gpt-4o-mini'
+    return client.responses.create(model=model_str, input=ctx)
 
 def process_user_input(line):
     new_input_context_dict = {'role': 'user', 'content': line}
     context_good.append(new_input_context_dict)
     context_good.append(new_input_context_dict)
 
+    which_one = ''
     if random.choice([True, False]):
         response = call_llm(context_good)
+        which_one = 'Alph'
     else:
         response = call_llm(context_bad)
+        which_one = 'Ralph'
 
     new_response_context_dict = {'role': 'assistant', 'content': response.output_text}
     context_good.append(new_response_context_dict)
     context_bad.append(new_response_context_dict)
 
-    return response.output_text
+    return f'({which_one}) {response.output_text}'
 
 def main():
     while True:
